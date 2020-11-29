@@ -1,5 +1,8 @@
 set -e
 
+alias BEGINCOMMENT="if [ ]; then"
+alias ENDCOMMENT="fi"
+
 echo "Running apt-get update"
 apt-get update
 
@@ -25,17 +28,18 @@ echo "Stopping Docker Service"
 service docker stop
 
 echo "Moving Docker Data diretory to /mydata/docker-data/"
-echo -e "{\n\t \"graph\": \"/mydata/docker-data/\"\n}" | sudo tee -a /etc/docker/daemon.json
+echo "{\n\t \"graph\": \"/mydata/docker-data/\"\n}" | sudo tee -a /etc/docker/daemon.json
 
+set +e
 rsync -aP /var/lib/docker/ /mydata/docker-data/
-
 mv /var/lib/docker /var/lib/docker.old
+set -e
 
 echo "Restarting docker daemon"
 service docker start
 
 echo "Installing NVIDIA Drivers"
-apt-get -y install -qq --print-uris linux-headers-$(uname -r) >>runres.log 2>>runerr.log
+apt-get -y install -qq linux-headers-$(uname -r) >>runres.log 2>>runerr.log
 
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
 
@@ -50,9 +54,10 @@ echo "deb http://developer.download.nvidia.com/compute/cuda/repos/$distribution/
 
 apt-get update
 
-apt-get -y install -qq --print-uris cuda-drivers >>runres.log 2>>runerr.log
+apt-get -y install -qq cuda-drivers >>runres.log 2>>runerr.log
 
 export PATH=/usr/local/cuda-11.1/bin${PATH:+:${PATH}}
+
 
 echo "Rebooting in 3"
 sleep 1
@@ -63,24 +68,25 @@ sleep 1
 echo "Rebooting NOW!"
 #shutdown -r now
 
-// Installing TF docker image (https://www.tensorflow.org/install/docker)
+echo "Installing TF docker image (https://www.tensorflow.org/install/docker)"
 docker pull tensorflow/tensorflow                     # latest stable release
 docker pull tensorflow/tensorflow:devel-gpu           # nightly dev release w/ GPU support
 docker pull tensorflow/tensorflow:latest-gpu-jupyter  # latest release w/ GPU support and Jupyter
 
-// Install NVIDIA container toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
+echo "Install NVIDIA container toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)"
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 apt-get update
-apt-get install -y nvidia-docker2
+apt-get install -y  -qq nvidia-docker2 >>runres.log 2>>runerr.log
 systemctl restart docker
 
-// Test CUDA
+echo "Test CUDA"
 docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
-// Run tf-docker bash shell
+#// Run tf-docker bash shell
 #docker run --gpus all -it tensorflow/tensorflow:latest-gpu bash
 
+BEGINCOMMENT
 //Useful packages inside docker-tf-gpu bash
 apt-get update
 apt-get -y install sudo git vim tmux
@@ -102,3 +108,4 @@ git clone https://github.com/europa1610/vimconfig.git
 // PubkeyAuthentication no
 // PasswordAuthentication yes
 // sudo systemctl restart sshd
+ENDCOMMENT
