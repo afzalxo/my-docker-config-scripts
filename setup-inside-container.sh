@@ -1,8 +1,8 @@
 set -e
 #Useful packages inside docker-tf-gpu bash
 apt-get update
-apt-get -y install sudo git vim tmux htop wget
-pip3 install torchvision matplotlib pandas wandb
+apt-get -y install sudo git vim tmux htop wget graphviz
+pip3 install torchvision matplotlib pandas wandb graphviz
 
 #//Configure vim
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
