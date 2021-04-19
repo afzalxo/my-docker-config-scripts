@@ -1,3 +1,3 @@
 set -e
 
-docker run --gpus all -it tensorflow/tensorflow:latest-gpu bash
+docker run --gpus all -it --ipc=host tensorflow/tensorflow:latest-gpu bash
