@@ -45,7 +45,7 @@ nvidia-smi
 
 echo "Installing additional packages..."
 apt-get -y install sudo git vim tmux htop wget graphviz python3-pip
-pip3 install torchvision matplotlib pandas wandb graphviz
+pip3 install torchvision matplotlib pandas wandb graphviz scikit-learn
 
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 git clone https://github.com/europa1610/vimconfig.git
